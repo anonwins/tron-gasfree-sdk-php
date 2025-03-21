@@ -26,20 +26,20 @@ This is an unofficial SDK for the GasFree service. It is not affiliated with, ma
 
 ## Installation
 
-1. Download the `GasFreeSDK.php` file
+1. Download the `TronGasFreeSDK.php` file
 2. Include it in your project:
 
 ```php
-require_once 'GasFreeSDK.php';
+require_once 'TronGasFreeSDK.php';
 ```
 
 ## Quick Start
 
 ```php
-use GasFreeSDK;
+use TronGasFreeSDK;
 
 // Initialize the SDK
-$sdk = new GasFreeSDK(
+$sdk = new TronGasFreeSDK(
     'your_api_key_here',
     'your_api_secret_here',
     false // Set to true for testnet
@@ -230,4 +230,4 @@ MIT License
 
 For support:
 - For SDK-specific issues, please open an issue on [GitHub](https://github.com/anonwins/tron-gasfree-sdk-php/issues)
-- For API-related questions, please refer to the [GasFree Developer Documentation](https://docs.gasfree.io/) 
+- For API-related questions, please refer to the [GasFree Developer Documentation](https://gasfree.io/docs/GasFree_specification.html) 
