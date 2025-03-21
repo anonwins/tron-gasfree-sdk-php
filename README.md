@@ -35,10 +35,12 @@ require_once 'TronGasFreeSDK.php';
 
 ## Quick Start
 
+Here's a complete example of how to perform a gas-free USDT transfer:
+
 ```php
 use TronGasFreeSDK;
 
-// Initialize the SDK
+// Initialize the SDK with your API credentials
 $sdk = new TronGasFreeSDK(
     'your_api_key_here',
     'your_api_secret_here',
@@ -46,36 +48,96 @@ $sdk = new TronGasFreeSDK(
 );
 
 try {
-    // Get all supported tokens
+    // Step 1: Get supported tokens to find USDT contract address
     $tokens = $sdk->getAllTokens();
-    
-    // Get all service providers
+    $usdtToken = null;
+    foreach ($tokens as $token) {
+        if ($token['symbol'] === 'USDT') {
+            $usdtToken = $token;
+            break;
+        }
+    }
+    if (!$usdtToken) {
+        throw new Exception('USDT token not found');
+    }
+
+    // Step 2: Get service providers
     $providers = $sdk->getAllProviders();
-    
-    // Get account information
-    $accountInfo = $sdk->getAccountInfo('TFFAMQLZybALaLb4uxHA9RBE7pxhUAjF3U');
-    
-    // Submit a transfer
-    $transfer = $sdk->submitTransfer([
-        'token' => 'TFFAMQLZybALaLb4uxHA9RBE7pxhUAjF3U',
-        'serviceProvider' => 'TFFAMQLZybALaLb4uxHA9RBE7pxhUAjF3U',
-        'user' => 'TFFAMQLZybALaLb4uxHA9RBE7pxhUAjF3U',
-        'receiver' => 'TFFAMQLZybALaLb4uxHA9RBE7pxhUAjF3U',
-        'value' => '1000000',
-        'maxFee' => '100000',
+    if (empty($providers)) {
+        throw new Exception('No service providers available');
+    }
+    // Use the first available provider
+    $provider = $providers[0];
+
+    // Step 3: Check account balance and status
+    $senderAddress = 'TFFAMQLZybALaLb4uxHA9RBE7pxhUAjF3U'; // Your sender address
+    $accountInfo = $sdk->getAccountInfo($senderAddress);
+    if (!$accountInfo['isActive']) {
+        throw new Exception('Account is not active for gas-free transfers');
+    }
+
+    // Step 4: Prepare transfer parameters
+    $transferParams = [
+        'token' => $usdtToken['address'], // USDT contract address
+        'serviceProvider' => $provider['address'],
+        'user' => $senderAddress,
+        'receiver' => 'TFFAMQLZybALaLb4uxHA9RBE7pxhUAjF3U', // Recipient address
+        'value' => '1000000', // Amount in smallest unit (6 decimals for USDT)
+        'maxFee' => '100000', // Maximum fee in TRX (0.1 TRX)
         'deadline' => time() + 300, // 5 minutes from now
         'version' => 1,
-        'nonce' => 0,
-        'sig' => '0x...' // Your EIP-712 signature
-    ]);
-    
-    // Get transfer details
-    $details = $sdk->getTransferDetails('your_trace_id');
-    
+        'nonce' => $accountInfo['nonce'], // Use current nonce from account info
+        'sig' => '0x...' // Your EIP-712 signature (implementation depends on your signing method)
+    ];
+
+    // Step 5: Submit the transfer
+    $transfer = $sdk->submitTransfer($transferParams);
+    $traceId = $transfer['traceId'];
+
+    // Step 6: Monitor transfer status
+    $maxAttempts = 10;
+    $attempt = 0;
+    $transferDetails = null;
+
+    while ($attempt < $maxAttempts) {
+        $transferDetails = $sdk->getTransferDetails($traceId);
+        
+        if ($transferDetails['status'] === 'SUCCESS') {
+            echo "Transfer successful! Transaction hash: " . $transferDetails['txHash'];
+            break;
+        } elseif ($transferDetails['status'] === 'FAILED') {
+            throw new Exception('Transfer failed: ' . $transferDetails['error']);
+        }
+        
+        // Wait 3 seconds before next check
+        sleep(3);
+        $attempt++;
+    }
+
+    if (!$transferDetails || $transferDetails['status'] !== 'SUCCESS') {
+        throw new Exception('Transfer status check timed out');
+    }
+
 } catch (Exception $e) {
     echo "Error: " . $e->getMessage();
 }
 ```
+
+This example demonstrates:
+1. Finding the USDT token contract address
+2. Selecting a service provider
+3. Checking account status
+4. Preparing transfer parameters
+5. Submitting the transfer
+6. Monitoring the transfer status
+
+Key points to note:
+- Replace `your_api_key_here` and `your_api_secret_here` with your actual GasFree API credentials
+- Replace the sender and receiver addresses with actual TRON addresses
+- Adjust the `value` parameter based on your transfer amount (remember USDT has 6 decimals)
+- Implement proper EIP-712 signing for the `sig` parameter
+- The `maxFee` is in TRX (1 TRX = 1,000,000 SUN)
+- The `deadline` should be set to a reasonable future time (5-15 minutes recommended)
 
 ## API Reference
 
