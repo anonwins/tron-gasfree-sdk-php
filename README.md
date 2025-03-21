@@ -6,7 +6,7 @@ This SDK is provided by [anonwins](https://github.com/anonwins/), while the defi
 
 ## Disclaimer
 
-This is an unofficial SDK for the GasFree service. It is not affiliated with, maintained, authorized, or endorsed by the official GasFree project. While we strive to maintain compatibility with the official API, please refer to the [official documentation](https://docs.gasfree.io/) for the most up-to-date API specifications.
+This is an unofficial SDK for the GasFree service. It is not affiliated with, maintained, authorized, or endorsed by the official GasFree project. While we strive to maintain compatibility with the official API, please refer to the [official documentation](https://gasfree.io/docs/GasFree_specification.html) for the most up-to-date API specifications.
 
 ## Features
 
